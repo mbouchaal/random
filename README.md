@@ -1,38 +1,41 @@
-/**
- * Récupère toutes les lignes du tableau sous forme de liste de listes.
- * Chaque ligne = liste de 12 chaînes (valeurs des colonnes).
- * 
- * @return Liste de lignes, où chaque ligne contient 12 valeurs
- * 
- * @example
- * List<List<String>> rows = page.getResultTableRowsValues();
- * for (List<String> row : rows) {
- *     System.out.println("Emetteur: " + row.get(1) + ", Receveur: " + row.get(2));
- * }
- */
-public List<List<String>> getResultTableRowsValues() {
-    // Récupérer toutes les cellules via la méthode existante
-    List<WebElement> cells = get_ListGridCellsValues();
+@Test
+public void suiviFlux_FilterReceiver() {
+    // Navigation et filtres...
+    RUNNER.pom.getSuiviFluxPage().searchByReceiver("receiver");
+    RUNNER.pom.getSuiviFluxPage().clickOnSearchBtn();
     
-    List<List<String>> tableData = new ArrayList<>();
+    // 👇 METS TON CODE ICI 👇
     
-    // Calculer le nombre de lignes (12 colonnes par ligne)
-    int totalRows = cells.size() / 12;
+    // 1️⃣ Trouver une ligne spécifique par valeur de colonne
+    List<String> row = RUNNER.pom.getSuiviFluxPage().getRowValuesByColumnValue(1, "CORE1FR");
     
-    // Construire chaque ligne
-    for (int row = 0; row < totalRows; row++) {
-        List<String> rowData = new ArrayList<>();
-        int startIndex = row * 12;
-        
-        // Récupérer les 12 cellules de cette ligne
-        for (int col = 0; col < 12 && (startIndex + col) < cells.size(); col++) {
-            rowData.add(cells.get(startIndex + col).getText().trim());
-        }
-        
-        tableData.add(rowData);
+    if (row != null) {
+        softAssert.assertEquals(row.get(0), "expectedID", "Identifiant Fichier");
+        softAssert.assertEquals(row.get(2), "T2_RTGS", "Receveur");
+        softAssert.assertEquals(row.get(6), "5000_ROUTED_AR", "Statut");
     }
     
-    System.out.println("DEBUG - Nombre de lignes récupérées: " + tableData.size());
+    // 2️⃣ Récupérer toutes les lignes et parcourir
+    List<List<String>> allRows = RUNNER.pom.getSuiviFluxPage().getResultTableRowsValues();
     
-    return tableData;
+    System.out.println("Total lignes: " + allRows.size());
+    
+    for (List<String> r : allRows) {
+        System.out.println("Emetteur: " + r.get(1) + ", Receveur: " + r.get(2));
+    }
+    
+    // 3️⃣ Vérifier qu'une valeur existe
+    boolean found = allRows.stream()
+        .anyMatch(r -> r.get(1).equals("IPEU"));
+    
+    softAssert.assertTrue(found, "IPEU doit exister dans la colonne Emetteur");
+    
+    // 4️⃣ Compter les lignes avec un critère
+    long countTIPS = allRows.stream()
+        .filter(r -> r.get(2).equals("TIPS"))
+        .count();
+    
+    System.out.println("Nombre de lignes avec TIPS: " + countTIPS);
+    
+    softAssert.assertAll();
 }
