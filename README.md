@@ -67,3 +67,19 @@ if (!rows.isEmpty()) {
 // Vérifier qu'on a au maximum 20 lignes
 softAssert.assertTrue(rows.size() <= 20, "Maximum 20 lignes par page");
 
+
+List<List<String>> rows = RUNNER.pom.getSuiviFluxPage().getResultTableRowsValues();
+
+System.out.println("\n=== TABLEAU RÉCUPÉRÉ ===");
+for (int i = 0; i < rows.size(); i++) {
+    List<String> row = rows.get(i);
+    System.out.println("Ligne " + (i+1) + ": [" + String.join(" | ", row) + "]");
+}
+
+// Vérifier que la première ligne commence par "1"
+if (!rows.isEmpty()) {
+    softAssert.assertEquals(rows.get(0).get(0), "1", "La première ligne doit commencer par 1");
+}
+
+// Vérifier qu'on a au maximum 20 lignes
+softAssert.assertTrue(rows.size() <= 20, "Maximum 20 lignes par page");
